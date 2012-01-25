@@ -1,0 +1,72 @@
+#!/usr/bin/python
+from gi.repository import GLib
+from gi.repository import Gtk
+from gi.repository import GtkSource
+from gi.repository import WebKit
+
+import StringIO
+import subprocess
+
+window = Gtk.Window()
+window.set_default_size(1000, 600)
+window.set_title("Markgown!")
+paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+window.add(paned)
+
+sw = Gtk.ScrolledWindow()
+
+b = GtkSource.Buffer()
+view = GtkSource.View.new_with_buffer(b)
+view.set_wrap_mode(Gtk.WrapMode.WORD)
+b.set_language(
+    GtkSource.LanguageManager.get_default().get_language('markdown'))
+b.set_text("""
+# Markgown
+
+A [wjt](http://wjt.me.uk/) production.
+
+## Introduction
+
+This is a really stupid Markdown editor with live preview.
+
+## How does it work?
+
+It uses `GtkSourceView` on the left hand side, and a WebKit view on the right-hand side, both from Python using GObject introspection. Behind the scenes it uses [Pandoc][]. So we have:
+
+* C;
+* Python;
+* Haskell;
+* and a dormant JavaScript engine.
+
+This is the future!
+
+[Pandoc]: http://johnmacfarlane.net/pandoc/
+    "Pandoc is grrrrrreat."
+
+""")
+sw.add(view)
+
+paned.add1(sw)
+
+sw = Gtk.ScrolledWindow()
+web = WebKit.WebView()
+sw.add(web)
+paned.add2(sw)
+
+paned.set_position(600)
+
+window.show_all()
+window.connect('destroy', Gtk.main_quit)
+
+def refresh(*args):
+    pandoc = subprocess.Popen(["pandoc", "-s"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    pandoc.stdin.write(b.get_property('text'))
+    pandoc.stdin.close()
+    html = pandoc.stdout.read()
+    web.load_string(html, "text/html", "UTF-8", "file:///tmp")
+    return True
+
+GLib.timeout_add_seconds(5, refresh)
+refresh()
+
+Gtk.main()
