@@ -28,6 +28,8 @@ class MarkgownWindow(Gtk.Window):
         self.b.set_language(
             GtkSource.LanguageManager.get_default().get_language('markdown'))
         self.b.set_text(data.strip())
+        # We haven't modified it per se…
+        self.b.set_modified(False)
         sw.add(view)
 
         overlay = Gtk.Overlay()
@@ -49,26 +51,31 @@ class MarkgownWindow(Gtk.Window):
         paned.set_position(600)
 
         self.show_all()
-
-        self.b.connect('modified-changed', self.changed)
         self.refresh()
 
-    def refresh(self, *args):
+        self.b.connect('modified-changed', lambda args: self.check_modified())
+        self.check_modified()
+
+    def save(self):
         text = self.b.get_property('text')
 
         if len(text) > 0 and text[-1] != '\n':
             text += '\n'
 
         GLib.file_set_contents(self.filename, text)
+        self.b.set_modified(False)
+
+        self.refresh()
+        return False
+
+    def refresh(self):
         pandoc = subprocess.Popen(["pandoc", "-s", self.filename], stdout=subprocess.PIPE)
         html = pandoc.stdout.read()
         self.web.load_string(html, "text/html", "UTF-8", "file:///tmp")
-        self.b.set_modified(False)
-        return False
 
-    def changed(self, *args):
+    def check_modified(self):
         if self.b.get_modified():
-            GLib.timeout_add_seconds(5, self.refresh)
+            GLib.timeout_add_seconds(5, self.save)
             self.spinner.show()
             self.spinner.start()
         else:
