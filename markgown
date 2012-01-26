@@ -87,6 +87,14 @@ class MarkgownWindow(Gtk.Window):
         self.b.connect('modified-changed', lambda args: self.check_modified())
         self.check_modified()
 
+        self.connect('delete-event', self.__check_save)
+
+    def __check_save(self, *args):
+        if self.b.get_modified():
+            self.save()
+
+        return False
+
     def save(self):
         text = self.b.get_property('text')
 
