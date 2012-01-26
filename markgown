@@ -29,7 +29,7 @@ class Markgown(object):
         view.set_wrap_mode(Gtk.WrapMode.WORD)
         self.b.set_language(
             GtkSource.LanguageManager.get_default().get_language('markdown'))
-        self.b.set_text(data)
+        self.b.set_text(data.strip())
         sw.add(view)
 
         overlay = Gtk.Overlay()
@@ -57,7 +57,12 @@ class Markgown(object):
         self.refresh()
 
     def refresh(self, *args):
-        GLib.file_set_contents(self.filename, self.b.get_property('text'))
+        text = self.b.get_property('text')
+
+        if len(text) > 0 and text[-1] != '\n':
+            text += '\n'
+
+        GLib.file_set_contents(self.filename, text)
         pandoc = subprocess.Popen(["pandoc", "-s", self.filename], stdout=subprocess.PIPE)
         html = pandoc.stdout.read()
         self.web.load_string(html, "text/html", "UTF-8", "file:///tmp")
