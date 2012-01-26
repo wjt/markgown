@@ -8,18 +8,17 @@ from gi.repository import WebKit
 import subprocess
 import sys
 
-class Markgown(object):
+class MarkgownWindow(Gtk.Window):
     def __init__(self):
-        object.__init__(self)
+        Gtk.Window.__init__(self)
 
         self.filename = sys.argv[1]
         (ret, data) = GLib.file_get_contents(self.filename)
         assert ret
 
-        self.window = Gtk.Window()
-        self.window.set_default_size(1000, 600)
+        self.set_default_size(1000, 600)
         paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
-        self.window.add(paned)
+        self.add(paned)
 
         sw = Gtk.ScrolledWindow()
 
@@ -49,8 +48,7 @@ class Markgown(object):
 
         paned.set_position(600)
 
-        self.window.show_all()
-        self.window.connect('destroy', Gtk.main_quit)
+        self.show_all()
 
         self.timeout = None
         self.b.connect('changed', self.changed)
@@ -85,8 +83,9 @@ class Markgown(object):
         else:
             title = '%s (%s)' % (title, self.filename)
 
-        self.window.set_title(title)
+        self.set_title(title)
 
 if __name__ == '__main__':
-    mg = Markgown()
+    window = MarkgownWindow()
+    window.connect('destroy', Gtk.main_quit)
     Gtk.main()
