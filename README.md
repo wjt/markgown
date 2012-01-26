@@ -4,7 +4,7 @@ A [wjt](http://wjt.me.uk/) production.
 
 ## Introduction
 
-This is a *really stupid* Markdown editor with **live preview**. It might be useful if you *hate your data*; but it also might be useful if you want a __distraction-free Markdown editing experience__!
+This is a *really stupid* [Markdown][] editor with **live preview**. It might be useful if you *hate your data*; but it also might be useful if you want a __distraction-free Markdown editing experience__!
 
 ## How do I use it?
 
@@ -32,6 +32,7 @@ This is the future!
 
 Yes.
 
-[Pandoc]: http://johnmacfarlane.net/pandoc/s
+[Markdown]: http://daringfireball.net/projects/markdown/
+[Pandoc]: http://johnmacfarlane.net/pandoc/
     "I love horses."
 [gedit-markdown]: http://www.jpfleury.net/en/software/gedit-markdown.php
