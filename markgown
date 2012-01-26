@@ -8,67 +8,70 @@ from gi.repository import WebKit
 import subprocess
 import sys
 
-filename = sys.argv[1]
-(ret, data) = GLib.file_get_contents(filename)
-assert ret
+class Markgown(object):
+    def __init__(self):
+        object.__init__(self)
 
-window = Gtk.Window()
-window.set_default_size(1000, 600)
-window.set_title("%s – Markgown!" % filename)
-paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
-window.add(paned)
+        self.filename = sys.argv[1]
+        (ret, data) = GLib.file_get_contents(self.filename)
+        assert ret
 
-sw = Gtk.ScrolledWindow()
+        window = Gtk.Window()
+        window.set_default_size(1000, 600)
+        window.set_title("%s – Markgown!" % self.filename)
+        paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+        window.add(paned)
 
-b = GtkSource.Buffer()
-view = GtkSource.View.new_with_buffer(b)
-view.set_wrap_mode(Gtk.WrapMode.WORD)
-b.set_language(
-    GtkSource.LanguageManager.get_default().get_language('markdown'))
-b.set_text(data)
-sw.add(view)
+        sw = Gtk.ScrolledWindow()
 
-overlay = Gtk.Overlay()
-overlay.add(sw)
+        self.b = GtkSource.Buffer()
+        view = GtkSource.View.new_with_buffer(self.b)
+        view.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.b.set_language(
+            GtkSource.LanguageManager.get_default().get_language('markdown'))
+        self.b.set_text(data)
+        sw.add(view)
 
-spinner = Gtk.Spinner()
-spinner.set_halign(Gtk.Align.END)
-spinner.set_valign(Gtk.Align.END)
-overlay.add_overlay(spinner)
+        overlay = Gtk.Overlay()
+        overlay.add(sw)
 
-paned.add1(overlay)
+        self.spinner = Gtk.Spinner()
+        self.spinner.set_halign(Gtk.Align.END)
+        self.spinner.set_valign(Gtk.Align.END)
+        overlay.add_overlay(self.spinner)
 
-sw = Gtk.ScrolledWindow()
-web = WebKit.WebView()
-sw.add(web)
-paned.add2(sw)
+        paned.add1(overlay)
 
-paned.set_position(600)
+        sw = Gtk.ScrolledWindow()
+        self.web = WebKit.WebView()
+        sw.add(self.web)
+        paned.add2(sw)
 
-window.show_all()
-window.connect('destroy', Gtk.main_quit)
+        paned.set_position(600)
 
-timeout = None
+        window.show_all()
+        window.connect('destroy', Gtk.main_quit)
 
-def refresh(*args):
-    global timeout
-    GLib.file_set_contents(filename, b.get_property('text'))
-    pandoc = subprocess.Popen(["pandoc", "-s", filename], stdout=subprocess.PIPE)
-    html = pandoc.stdout.read()
-    web.load_string(html, "text/html", "UTF-8", "file:///tmp")
-    timeout = None
-    spinner.stop()
-    spinner.hide()
-    return False
+        self.timeout = None
+        self.b.connect('changed', self.changed)
+        self.refresh()
 
-def changed(*args):
-    global timeout
-    if timeout is None:
-        timeout = GLib.timeout_add_seconds(5, refresh)
-        spinner.show()
-        spinner.start()
+    def refresh(self, *args):
+        GLib.file_set_contents(self.filename, self.b.get_property('text'))
+        pandoc = subprocess.Popen(["pandoc", "-s", self.filename], stdout=subprocess.PIPE)
+        html = pandoc.stdout.read()
+        self.web.load_string(html, "text/html", "UTF-8", "file:///tmp")
+        self.timeout = None
+        self.spinner.stop()
+        self.spinner.hide()
+        return False
 
-b.connect('changed', changed)
-refresh()
+    def changed(self, *args):
+        if self.timeout is None:
+            self.timeout = GLib.timeout_add_seconds(5, self.refresh)
+            self.spinner.show()
+            self.spinner.start()
 
-Gtk.main()
+if __name__ == '__main__':
+    mg = Markgown()
+    Gtk.main()
