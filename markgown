@@ -50,8 +50,7 @@ class MarkgownWindow(Gtk.Window):
 
         self.show_all()
 
-        self.timeout = None
-        self.b.connect('changed', self.changed)
+        self.b.connect('modified-changed', self.changed)
         self.refresh()
 
     def refresh(self, *args):
@@ -64,16 +63,17 @@ class MarkgownWindow(Gtk.Window):
         pandoc = subprocess.Popen(["pandoc", "-s", self.filename], stdout=subprocess.PIPE)
         html = pandoc.stdout.read()
         self.web.load_string(html, "text/html", "UTF-8", "file:///tmp")
-        self.timeout = None
-        self.spinner.stop()
-        self.spinner.hide()
+        self.b.set_modified(False)
         return False
 
     def changed(self, *args):
-        if self.timeout is None:
-            self.timeout = GLib.timeout_add_seconds(5, self.refresh)
+        if self.b.get_modified():
+            GLib.timeout_add_seconds(5, self.refresh)
             self.spinner.show()
             self.spinner.start()
+        else:
+            self.spinner.stop()
+            self.spinner.hide()
 
     def notify_title_cb(self, *args):
         title = self.web.get_title()
