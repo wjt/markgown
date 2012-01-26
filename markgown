@@ -16,11 +16,10 @@ class Markgown(object):
         (ret, data) = GLib.file_get_contents(self.filename)
         assert ret
 
-        window = Gtk.Window()
-        window.set_default_size(1000, 600)
-        window.set_title("%s – Markgown!" % self.filename)
+        self.window = Gtk.Window()
+        self.window.set_default_size(1000, 600)
         paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
-        window.add(paned)
+        self.window.add(paned)
 
         sw = Gtk.ScrolledWindow()
 
@@ -44,13 +43,14 @@ class Markgown(object):
 
         sw = Gtk.ScrolledWindow()
         self.web = WebKit.WebView()
+        self.web.connect('notify::title', self.notify_title_cb)
         sw.add(self.web)
         paned.add2(sw)
 
         paned.set_position(600)
 
-        window.show_all()
-        window.connect('destroy', Gtk.main_quit)
+        self.window.show_all()
+        self.window.connect('destroy', Gtk.main_quit)
 
         self.timeout = None
         self.b.connect('changed', self.changed)
@@ -76,6 +76,16 @@ class Markgown(object):
             self.timeout = GLib.timeout_add_seconds(5, self.refresh)
             self.spinner.show()
             self.spinner.start()
+
+    def notify_title_cb(self, *args):
+        title = self.web.get_title()
+
+        if title is None:
+            title = self.filename
+        else:
+            title = '%s (%s)' % (title, self.filename)
+
+        self.window.set_title(title)
 
 if __name__ == '__main__':
     mg = Markgown()
