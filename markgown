@@ -21,6 +21,7 @@ from gi.repository import Gtk
 from gi.repository import GtkSource
 from gi.repository import WebKit
 
+import os.path
 import subprocess
 import sys
 
@@ -59,9 +60,10 @@ class MarkgownWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
 
-        self.filename = sys.argv[1]
+        self.filename = os.path.realpath(sys.argv[1])
         (ret, data) = GLib.file_get_contents(self.filename)
         assert ret
+        self.loaded = False
 
         self.set_default_size(1000, 600)
         paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
@@ -124,9 +126,16 @@ class MarkgownWindow(Gtk.Window):
         return False
 
     def refresh(self):
-        pandoc = subprocess.Popen(["pandoc", "-s", self.filename], stdout=subprocess.PIPE)
-        html = pandoc.stdout.read()
-        self.web.load_string(html, "text/html", "UTF-8", "file:///tmp")
+        base, _ = os.path.splitext(self.filename)
+        # FIXME: make this a dotfile? delete it on quit?
+        html_file = "%s.html" % base
+        pandoc = subprocess.Popen(["pandoc", "-s", self.filename, "-o", html_file])
+        pandoc.wait()
+        if self.loaded:
+            self.web.reload()
+        else:
+            self.web.load_uri('file://' + html_file)
+            self.loaded = True
 
     def check_modified(self):
         if self.b.get_modified():

@@ -6,6 +6,8 @@ A [wjt](http://wjt.me.uk/) production.
 
 This is a *really stupid* [Markdown][] editor with **live preview**. It might be useful if you *hate your data*; but it also might be useful if you want a __distraction-free Markdown editing experience__!
 
+(Of course, distraction-free is relative if you find yourself hacking on a distraction-free editor when you're supposed to be doing something else…)
+
 ## How do I use it?
 
 Launch it on an existing file:
@@ -13,7 +15,7 @@ Launch it on an existing file:
     % touch my-document.md
     % markgown my-document.md
 
-And then mash on your keyboard. The preview will be updates as and when it feels like it. It will probably lose your position when it does so. The document is saved whenever the preview updates, and also when you close the window if necessary.
+And then mash on your keyboard. The preview will be updates as and when it feels like it. The document is saved whenever the preview updates, and also when you close the window.
 
 ## How does it work?
 
