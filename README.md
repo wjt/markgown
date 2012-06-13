@@ -8,6 +8,8 @@ This is a *really stupid* [Markdown][] editor with **live preview**. It might be
 
 (Of course, distraction-free is relative if you find yourself hacking on a distraction-free editor when you're supposed to be doing something else…)
 
+![Just a screenshot](http://willthompson.co.uk/misc/markgown.png)
+
 ## How do I use it?
 
 Launch it on an existing file:
