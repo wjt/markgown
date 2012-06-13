@@ -131,7 +131,8 @@ class MarkgownWindow(Gtk.Window):
         base, _ = os.path.splitext(self.filename)
         # FIXME: make this a dotfile? delete it on quit?
         html_file = "%s.html" % base
-        pandoc = subprocess.Popen(["pandoc", "-s", self.filename, "-o", html_file])
+        pandoc = subprocess.Popen(["pandoc", "-s", "--smart", "--toc",
+                                   self.filename, "-o", html_file])
         pandoc.wait()
         if self.loaded:
             self.web.reload()
