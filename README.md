@@ -42,7 +42,12 @@ Yes, that would be lovely. But I can't figure out how to make that happen. I'm n
 
 Yeah. I mean, ideally, it would be a circle from which a segment is removed every second or something but that would require faffing around with Cairo so I didn't bother.
 
+## Who wrote the beautiful CSS?
+
+That would be [Kevin Burke][markdowncss]. Cheers!
+
 [Markdown]: http://daringfireball.net/projects/markdown/
 [Pandoc]: http://johnmacfarlane.net/pandoc/
     "I love horses."
 [gedit-markdown]: http://www.jpfleury.net/en/software/gedit-markdown.php
+[markdowncss]: http://kevinburke.bitbucket.org/markdowncss/

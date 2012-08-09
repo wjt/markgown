@@ -131,7 +131,10 @@ class MarkgownWindow(Gtk.Window):
         base, _ = os.path.splitext(self.filename)
         # FIXME: make this a dotfile? delete it on quit?
         html_file = "%s.html" % base
+        css_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), 'markdown.css'))
         pandoc = subprocess.Popen(["pandoc", "-s", "--smart", "--toc",
+                                   "--css=file://%s" % css_path,
                                    self.filename, "-o", html_file])
         pandoc.wait()
         if self.loaded:
