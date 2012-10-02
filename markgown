@@ -18,6 +18,8 @@
 
 from gi.repository import GLib, Gtk, GtkSource, WebKit, Pango
 
+from markdownview import MarkdownView
+
 import os.path
 import subprocess
 import sys
@@ -62,6 +64,10 @@ class MarkgownWindow(Gtk.Window):
         assert ret
         self.loaded = False
 
+        base, _ = os.path.splitext(self.filename)
+        # FIXME: make this a dotfile? delete it on quit?
+        self.html_file = "%s.html" % base
+
         self.set_default_size(1000, 600)
         paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.add(paned)
@@ -93,11 +99,9 @@ class MarkgownWindow(Gtk.Window):
 
         paned.add1(overlay)
 
-        sw = Gtk.ScrolledWindow()
-        self.web = WebKit.WebView()
-        self.web.connect('notify::title', self.notify_title_cb)
-        sw.add(self.web)
-        paned.add2(sw)
+        self.markdownview = MarkdownView(url=('file://' + self.html_file))
+        self.markdownview.connect('title_changed', self.title_changed_cb)
+        paned.add2(self.markdownview)
 
         paned.set_position(600)
 
@@ -128,20 +132,13 @@ class MarkgownWindow(Gtk.Window):
         return False
 
     def refresh(self):
-        base, _ = os.path.splitext(self.filename)
-        # FIXME: make this a dotfile? delete it on quit?
-        html_file = "%s.html" % base
         css_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), 'markdown.css'))
         pandoc = subprocess.Popen(["pandoc", "-s", "--smart", "--toc",
                                    "--css=file://%s" % css_path,
-                                   self.filename, "-o", html_file])
+                                   self.filename, "-o", self.html_file])
         pandoc.wait()
-        if self.loaded:
-            self.web.reload()
-        else:
-            self.web.load_uri('file://' + html_file)
-            self.loaded = True
+        self.markdownview.refresh()
 
     def check_modified(self):
         if self.b.get_modified():
@@ -151,9 +148,7 @@ class MarkgownWindow(Gtk.Window):
         else:
             self.spinner.hide()
 
-    def notify_title_cb(self, *args):
-        title = self.web.get_title()
-
+    def title_changed_cb(self, view, title):
         if title is None:
             title = self.filename
         else:
