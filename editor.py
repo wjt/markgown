@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gtk, GtkSource, Pango
+from gi.repository import GLib, Gtk, GtkSource, Pango
 
 class MarkdownSourceView(GtkSource.View):
     def __init__(self, b):
@@ -30,10 +30,23 @@ class MarkdownSourceView(GtkSource.View):
         self.set_buffer(b)
 
 class MarkdownBuffer(GtkSource.Buffer):
-    def __init__(self, initial_data):
+    def __init__(self, filename):
         GtkSource.Buffer.__init__(self)
+
+        self.filename = filename
+        (ret, data) = GLib.file_get_contents(self.filename)
+        assert ret
 
         self.set_language(
             GtkSource.LanguageManager.get_default().get_language('markdown'))
-        self.set_text(initial_data.strip())
+        self.set_text(data.strip())
+        self.set_modified(False)
+
+    def save(self):
+        text = self.get_property('text')
+
+        if len(text) > 0 and text[-1] != '\n':
+            text += '\n'
+
+        GLib.file_set_contents(self.filename, text)
         self.set_modified(False)

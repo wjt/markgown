@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib, Gtk, Gio
 
 from markdownview import MarkdownView
 from pips import Pips
@@ -26,13 +26,34 @@ import os.path
 import subprocess
 import sys
 
+class Rebuilder(object):
+    def __init__(self, path, html_path):
+        self.path = path
+        self.html_path = html_path
+
+        self.file = Gio.File.new_for_path(path)
+        self.monitor = self.file.monitor(
+            flags=Gio.FileMonitorFlags.NONE, cancellable=None)
+        self.monitor.connect('changed', self.__changed_cb)
+
+    def __changed_cb(self, monitor, file, other_file, event_type):
+        if event_type == Gio.FileMonitorEvent.CHANGES_DONE_HINT:
+            self.rebuild()
+
+    def rebuild(self):
+        css_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), 'markdown.css'))
+
+        pandoc = subprocess.Popen(["pandoc", "-s", "--smart", "--toc",
+                                   "--css=file://%s" % css_path,
+                                   self.path, "-o", self.html_path])
+        pandoc.wait()
+
 class MarkgownWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
 
         self.filename = os.path.realpath(sys.argv[1])
-        (ret, data) = GLib.file_get_contents(self.filename)
-        assert ret
         self.loaded = False
 
         base, _ = os.path.splitext(self.filename)
@@ -45,7 +66,7 @@ class MarkgownWindow(Gtk.Window):
 
         sw = Gtk.ScrolledWindow()
 
-        self.b = MarkdownBuffer(data)
+        self.b = MarkdownBuffer(self.filename)
         view = MarkdownSourceView(self.b)
         sw.add(view)
 
@@ -66,7 +87,10 @@ class MarkgownWindow(Gtk.Window):
         paned.set_position(600)
 
         self.show_all()
-        self.refresh()
+
+        self.rebuilder = Rebuilder(self.filename, self.html_file)
+        # Make sure the file is up to date to start with.
+        self.rebuilder.rebuild()
 
         self.b.connect('modified-changed', lambda args: self.check_modified())
         self.check_modified()
@@ -80,15 +104,7 @@ class MarkgownWindow(Gtk.Window):
         return False
 
     def save(self):
-        text = self.b.get_property('text')
-
-        if len(text) > 0 and text[-1] != '\n':
-            text += '\n'
-
-        GLib.file_set_contents(self.filename, text)
-        self.b.set_modified(False)
-
-        self.refresh()
+        self.b.save()
         return False
 
     def refresh(self):
@@ -98,7 +114,6 @@ class MarkgownWindow(Gtk.Window):
                                    "--css=file://%s" % css_path,
                                    self.filename, "-o", self.html_file])
         pandoc.wait()
-        self.markdownview.refresh()
 
     def check_modified(self):
         if self.b.get_modified():
