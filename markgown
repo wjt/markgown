@@ -21,41 +21,10 @@ from gi.repository import GLib, Gtk, Gio, GObject
 from markdownview import MarkdownView
 from pips import Pips
 from editor import MarkdownSourceView, MarkdownBuffer
+from rebuilder import Rebuilder
 
 import os.path
-import subprocess
 import sys
-
-class Rebuilder(GObject.Object):
-    __gsignals__ = {
-        'rebuilt': (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE,
-                          ())
-    }
-
-    def __init__(self, path, html_path):
-        GObject.Object.__init__(self)
-
-        self.path = path
-        self.html_path = html_path
-
-        self.file = Gio.File.new_for_path(path)
-        self.monitor = self.file.monitor(
-            flags=Gio.FileMonitorFlags.NONE, cancellable=None)
-        self.monitor.connect('changed', self.__changed_cb)
-
-    def __changed_cb(self, monitor, file, other_file, event_type):
-        if event_type == Gio.FileMonitorEvent.CHANGES_DONE_HINT:
-            self.rebuild()
-
-    def rebuild(self):
-        css_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), 'markdown.css'))
-
-        pandoc = subprocess.Popen(["pandoc", "-s", "--smart", "--toc",
-                                   "--css=file://%s" % css_path,
-                                   self.path, "-o", self.html_path])
-        pandoc.wait()
-        self.emit('rebuilt')
 
 class MarkgownWindow(Gtk.Window):
     def __init__(self):
