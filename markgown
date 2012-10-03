@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GLib, Gtk, Gio
+from gi.repository import GLib, Gtk, Gio, GObject
 
 from markdownview import MarkdownView
 from pips import Pips
@@ -26,8 +26,15 @@ import os.path
 import subprocess
 import sys
 
-class Rebuilder(object):
+class Rebuilder(GObject.Object):
+    __gsignals__ = {
+        'rebuilt': (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE,
+                          ())
+    }
+
     def __init__(self, path, html_path):
+        GObject.Object.__init__(self)
+
         self.path = path
         self.html_path = html_path
 
@@ -48,6 +55,7 @@ class Rebuilder(object):
                                    "--css=file://%s" % css_path,
                                    self.path, "-o", self.html_path])
         pandoc.wait()
+        self.emit('rebuilt')
 
 class MarkgownWindow(Gtk.Window):
     def __init__(self):
@@ -89,7 +97,7 @@ class MarkgownWindow(Gtk.Window):
         self.show_all()
 
         self.rebuilder = Rebuilder(self.filename, self.html_file)
-        # Make sure the file is up to date to start with.
+        self.rebuilder.connect('rebuilt', lambda *args: self.markdownview.refresh())
         self.rebuilder.rebuild()
 
         self.b.connect('modified-changed', lambda args: self.check_modified())
@@ -106,14 +114,6 @@ class MarkgownWindow(Gtk.Window):
     def save(self):
         self.b.save()
         return False
-
-    def refresh(self):
-        css_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), 'markdown.css'))
-        pandoc = subprocess.Popen(["pandoc", "-s", "--smart", "--toc",
-                                   "--css=file://%s" % css_path,
-                                   self.filename, "-o", self.html_file])
-        pandoc.wait()
 
     def check_modified(self):
         if self.b.get_modified():

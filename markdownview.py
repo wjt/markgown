@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gtk, WebKit, GObject, Gio
+from gi.repository import Gtk, WebKit, GObject
 
 class MarkdownView(Gtk.ScrolledWindow):
     __gsignals__ = {
@@ -32,19 +32,10 @@ class MarkdownView(Gtk.ScrolledWindow):
         self.web = WebKit.WebView()
         self.add(self.web)
 
-        self.file = Gio.File.new_for_uri(url)
-        self.monitor = self.file.monitor(
-            flags=Gio.FileMonitorFlags.NONE, cancellable=None)
-        self.monitor.connect('changed', self.__changed_cb)
-
         self.web.connect('notify::title', self.__notify_title_cb)
 
     def __notify_title_cb(self, *args):
         self.emit('title-changed', self.web.get_title())
-
-    def __changed_cb(self, monitor, file, other_file, event_type):
-        if event_type == Gio.FileMonitorEvent.CHANGES_DONE_HINT:
-            self.refresh()
 
     def refresh(self):
         if self.loaded:
