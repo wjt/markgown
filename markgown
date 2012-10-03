@@ -16,44 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GLib, Gtk, GtkSource, WebKit, Pango
+from gi.repository import GLib, Gtk, GtkSource, Pango
 
 from markdownview import MarkdownView
+from pips import Pips
 
 import os.path
 import subprocess
 import sys
-
-class Pips(Gtk.Label):
-    def __init__(self):
-        Gtk.Label.__init__(self, None)
-        self.__n = 0
-        self.__timer = None
-
-    def count_down_from(self, n):
-        self.__n = n
-        self.__update_label()
-
-        if self.__timer is None:
-            self.__timer = GLib.timeout_add_seconds(1, self.__count_down)
-
-    def __update_label(self):
-        if self.__n == 0:
-            self.set_text('hide me')
-            if self.__timer is not None:
-                GLib.source_remove(self.__timer)
-        else:
-            self.set_text('•' * self.__n)
-
-    def __count_down(self):
-        self.__n = self.__n - 1
-        self.__update_label()
-        if self.__n > 0:
-            return True
-        else:
-            self.__timer = None
-            return False
-
 
 class MarkgownWindow(Gtk.Window):
     def __init__(self):
