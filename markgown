@@ -16,10 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GLib, Gtk, GtkSource, Pango
+from gi.repository import GLib, Gtk
 
 from markdownview import MarkdownView
 from pips import Pips
+from editor import MarkdownSourceView, MarkdownBuffer
 
 import os.path
 import subprocess
@@ -44,19 +45,8 @@ class MarkgownWindow(Gtk.Window):
 
         sw = Gtk.ScrolledWindow()
 
-        self.b = GtkSource.Buffer()
-        view = GtkSource.View.new_with_buffer(self.b)
-        view.set_wrap_mode(Gtk.WrapMode.WORD)
-        desc = Pango.FontDescription()
-        desc.set_family('monospace')
-        view.modify_font(desc)
-
-        self.b.set_language(
-            GtkSource.LanguageManager.get_default().get_language('markdown'))
-
-        self.b.set_text(data.strip())
-        # We haven't modified it per se…
-        self.b.set_modified(False)
+        self.b = MarkdownBuffer(data)
+        view = MarkdownSourceView(self.b)
         sw.add(view)
 
         overlay = Gtk.Overlay()
