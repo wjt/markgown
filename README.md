@@ -19,6 +19,10 @@ Launch it on an existing file:
 
 And then mash on your keyboard. The preview will be updates as and when it feels like it. The document is saved whenever the preview updates, and also when you close the window.
 
+Or if you just want a live preview:
+
+    % markgown-preview my-document.md
+
 ## How does it work?
 
 It uses `GtkSourceView` on the left hand side, and a WebKit view on the right-hand side, both from Python using GObject introspection. Behind the scenes it uses [Pandoc][]. So we have:
