@@ -20,24 +20,26 @@ import os.path
 import sys
 import tempfile
 
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio
 
 from rebuilder import Rebuilder
 from markdownview import MarkdownView
 
-class ViewerWindow(Gtk.Window):
-    def __init__(self, md_filename, html_filename):
-        Gtk.Window.__init__(self)
+class ViewerWindow(Gtk.ApplicationWindow):
+    def __init__(self, md_filename):
+        Gtk.ApplicationWindow.__init__(self)
 
         self.set_default_size(768, 600)
 
         self.filename = md_filename
+        html_file = tempfile.NamedTemporaryFile(prefix=os.path.basename(md_filename), suffix='.html')
+        # TODO: close (and hence delete) on destroy
 
-        self.markdownview = MarkdownView(url=('file://' + html_filename))
+        self.markdownview = MarkdownView(url=('file://' + html_file.name))
         self.markdownview.connect('title_changed', self.__title_changed_cb)
         self.add(self.markdownview)
 
-        self.rebuilder = Rebuilder(self.filename, html_filename)
+        self.rebuilder = Rebuilder(self.filename, html_file.name)
         self.rebuilder.connect('rebuilt', self.__rebuilt_cb)
         self.rebuilder.rebuild()
 
@@ -54,9 +56,19 @@ class ViewerWindow(Gtk.Window):
 
         self.set_title(title)
 
+
+class ViewerApp(Gtk.Application):
+    def __init__(self):
+        Gtk.Application.__init__(self, application_id="uk.me.wjt.markgownviewer",
+                                 flags=Gio.ApplicationFlags.HANDLES_OPEN)
+
+        self.connect("open", ViewerApp.__open_cb)
+
+    def __open_cb(self, g_files, n_g_files, hint):
+        for g_file in g_files:
+            w = ViewerWindow(g_file.get_path())
+            self.add_window(w)
+
 if __name__ == '__main__':
-    md_filename = os.path.realpath(sys.argv[1])
-    with tempfile.NamedTemporaryFile(prefix=os.path.basename(md_filename), suffix='.html') as f:
-        window = ViewerWindow(md_filename, f.name)
-        window.connect('destroy', Gtk.main_quit)
-        Gtk.main()
+    app = ViewerApp()
+    app.run(sys.argv)
