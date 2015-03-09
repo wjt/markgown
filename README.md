@@ -52,6 +52,6 @@ That would be [Kevin Burke][markdowncss]. Cheers!
 
 [Markdown]: http://daringfireball.net/projects/markdown/
 [Pandoc]: http://johnmacfarlane.net/pandoc/
-    "I love horses."
+    "I love horses. Best of all the animals"
 [gedit-markdown]: http://www.jpfleury.net/en/software/gedit-markdown.php
 [markdowncss]: http://kevinburke.bitbucket.org/markdowncss/

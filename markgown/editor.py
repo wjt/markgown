@@ -20,7 +20,7 @@ from gi.repository import GLib, Gtk, Gio, GObject
 
 from markdownview import MarkdownView
 from pips import Pips
-from editor import MarkdownSourceView, MarkdownBuffer
+from sourceview import MarkdownSourceView, MarkdownBuffer
 from rebuilder import Rebuilder
 
 import os.path
