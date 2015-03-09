@@ -30,6 +30,9 @@ class ViewerWindow(Gtk.ApplicationWindow):
         Gtk.ApplicationWindow.__init__(self)
 
         self.set_default_size(768, 600)
+        self.hb = Gtk.HeaderBar()
+        self.hb.set_show_close_button(True)
+        self.set_titlebar(self.hb)
 
         self.filename = md_filename
         html_file = tempfile.NamedTemporaryFile(prefix=os.path.basename(md_filename), suffix='.html')
@@ -50,11 +53,11 @@ class ViewerWindow(Gtk.ApplicationWindow):
 
     def __title_changed_cb(self, view, title):
         if title is None:
-            title = self.filename
+            self.hb.set_title(self.filename)
+            self.hb.set_subtitle(None)
         else:
-            title = '%s (%s)' % (title, self.filename)
-
-        self.set_title(title)
+            self.hb.set_title(title)
+            self.hb.set_subtitle(self.filename)
 
 
 class ViewerApp(Gtk.Application):
