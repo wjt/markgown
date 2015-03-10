@@ -20,10 +20,9 @@ import os.path
 import sys
 import tempfile
 
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, WebKit
 
 from rebuilder import Rebuilder
-from markdownview import MarkdownView
 
 class ViewerWindow(Gtk.ApplicationWindow):
     def __init__(self, md_filename):
@@ -38,9 +37,12 @@ class ViewerWindow(Gtk.ApplicationWindow):
         html_file = tempfile.NamedTemporaryFile(prefix=os.path.basename(md_filename), suffix='.html')
         # TODO: close (and hence delete) on destroy
 
-        self.markdownview = MarkdownView(url=('file://' + html_file.name))
-        self.markdownview.connect('title_changed', self.__title_changed_cb)
-        self.add(self.markdownview)
+        self.web_view = WebKit.WebView()
+        self.web_view.load_uri('file://' + html_file.name)
+        self.web_view.connect('notify::title', self.__title_changed_cb)
+        sw = Gtk.ScrolledWindow()
+        sw.add(self.web_view)
+        self.add(sw)
 
         self.rebuilder = Rebuilder(self.filename, html_file.name)
         self.rebuilder.connect('rebuilt', self.__rebuilt_cb)
@@ -49,9 +51,11 @@ class ViewerWindow(Gtk.ApplicationWindow):
         self.show_all()
 
     def __rebuilt_cb(self, rebuilder):
-        self.markdownview.refresh()
+        self.web_view.reload()
 
-    def __title_changed_cb(self, view, title):
+    def __title_changed_cb(self, *args):
+        title = self.web_view.get_title()
+
         if title is None:
             self.hb.set_title(self.filename)
             self.hb.set_subtitle(None)
