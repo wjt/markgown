@@ -66,15 +66,48 @@ class ViewerWindow(Gtk.ApplicationWindow):
 
 class ViewerApp(Gtk.Application):
     def __init__(self):
-        Gtk.Application.__init__(self, application_id="uk.me.wjt.markgownviewer",
+        Gtk.Application.__init__(self, application_id="uk.me.wjt.markgown.viewer",
                                  flags=Gio.ApplicationFlags.HANDLES_OPEN)
 
+        self.connect("activate", ViewerApp.__activate_cb)
         self.connect("open", ViewerApp.__open_cb)
 
     def __open_cb(self, g_files, n_g_files, hint):
         for g_file in g_files:
             w = ViewerWindow(g_file.get_path())
             self.add_window(w)
+
+    def __activate_cb(self):
+        d = Gtk.FileChooserDialog(
+            "Open",
+            None,
+            Gtk.FileChooserAction.OPEN,
+            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+             Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        d.set_local_only(True)
+        d.set_select_multiple(True)
+
+        ff = Gtk.FileFilter()
+        markdown_globs = [
+            "*.md",
+            "*.mkd",
+            "*.mdwn"
+        ]
+        ff.set_name("Markdown files ({})".format(", ".join(markdown_globs)))
+        for glob in markdown_globs:
+            ff.add_pattern(glob)
+        d.add_filter(ff)
+
+        ff = Gtk.FileFilter()
+        ff.set_name("Text files")
+        ff.add_mime_type("text/plain")
+        d.add_filter(ff)
+
+        if d.run() == Gtk.ResponseType.OK:
+            self.__open_cb(d.get_files(), len(d.get_files()), "")
+
+        d.destroy()
+
 
 if __name__ == '__main__':
     app = ViewerApp()
