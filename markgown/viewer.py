@@ -45,14 +45,16 @@ class ViewerWindow(Gtk.ApplicationWindow):
 
         self.filename = None
         if md_filename != None:
-            self.__set_filename(md_filename)
+            self.set_filename(md_filename)
 
         self.show_all()
 
-    def __set_filename(self, md_filename):
+    def set_filename(self, md_filename):
         assert self.filename is None
 
         self.filename = md_filename
+        self.hb.set_subtitle(self.filename)
+
         self.html_file = tempfile.NamedTemporaryFile(prefix=os.path.basename(md_filename), suffix='.html')
         # TODO: close (and hence delete) on destroy
 
@@ -62,7 +64,6 @@ class ViewerWindow(Gtk.ApplicationWindow):
 
         self.web_view.load_uri('file://' + self.html_file.name)
 
-
     def __rebuilt_cb(self, rebuilder):
         self.web_view.reload()
 
@@ -70,11 +71,11 @@ class ViewerWindow(Gtk.ApplicationWindow):
         title = self.web_view.get_title()
 
         if title is None:
-            self.hb.set_title(self.filename)
-            self.hb.set_subtitle(None)
+            basename = os.path.basename(self.filename)
+            root, _ = os.path.splitext(basename)
+            self.hb.set_title(root)
         else:
             self.hb.set_title(title)
-            self.hb.set_subtitle(self.filename)
 
     def __open_clicked_cb(self, open_button):
         d = Gtk.FileChooserDialog(
@@ -123,14 +124,26 @@ class ViewerApp(Gtk.Application):
         self.connect("activate", ViewerApp.__activate_cb)
         self.connect("open", ViewerApp.__open_cb)
 
+    def __find_window(self, path):
+        for w in self.get_windows():
+            if w.filename == path:
+                return w
+
+        return None
+
     def open(self, g_file):
         path = g_file.get_path()
-        ws = [ w for w in self.get_windows() if w.filename == path ]
-        if ws:
-            map(lambda w: w.present(), ws)
+        w = self.__find_window(path)
+        if w is not None:
+            w.present()
         else:
-            w = ViewerWindow(g_file.get_path())
-            self.add_window(w)
+            w = self.__find_window(None)
+            if w is not None:
+                w.set_filename(path)
+                w.present()
+            else:
+                w = ViewerWindow(path)
+                self.add_window(w)
 
     def __open_cb(self, g_files, n_g_files, hint):
         for g_file in g_files:
