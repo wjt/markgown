@@ -33,22 +33,35 @@ class ViewerWindow(Gtk.ApplicationWindow):
         self.hb.set_show_close_button(True)
         self.set_titlebar(self.hb)
 
-        self.filename = md_filename
-        html_file = tempfile.NamedTemporaryFile(prefix=os.path.basename(md_filename), suffix='.html')
-        # TODO: close (and hence delete) on destroy
+        open_button = Gtk.Button.new_from_icon_name("document-open-symbolic", Gtk.IconSize.BUTTON)
+        open_button.connect('clicked', self.__open_clicked_cb)
+        self.hb.pack_start(open_button)
 
         self.web_view = WebKit.WebView()
-        self.web_view.load_uri('file://' + html_file.name)
         self.web_view.connect('notify::title', self.__title_changed_cb)
         sw = Gtk.ScrolledWindow()
         sw.add(self.web_view)
         self.add(sw)
 
-        self.rebuilder = Rebuilder(self.filename, html_file.name)
+        self.filename = None
+        if md_filename != None:
+            self.__set_filename(md_filename)
+
+        self.show_all()
+
+    def __set_filename(self, md_filename):
+        assert self.filename is None
+
+        self.filename = md_filename
+        self.html_file = tempfile.NamedTemporaryFile(prefix=os.path.basename(md_filename), suffix='.html')
+        # TODO: close (and hence delete) on destroy
+
+        self.rebuilder = Rebuilder(self.filename, self.html_file.name)
         self.rebuilder.connect('rebuilt', self.__rebuilt_cb)
         self.rebuilder.rebuild()
 
-        self.show_all()
+        self.web_view.load_uri('file://' + self.html_file.name)
+
 
     def __rebuilt_cb(self, rebuilder):
         self.web_view.reload()
@@ -63,24 +76,10 @@ class ViewerWindow(Gtk.ApplicationWindow):
             self.hb.set_title(title)
             self.hb.set_subtitle(self.filename)
 
-
-class ViewerApp(Gtk.Application):
-    def __init__(self):
-        Gtk.Application.__init__(self, application_id="uk.me.wjt.markgown.viewer",
-                                 flags=Gio.ApplicationFlags.HANDLES_OPEN)
-
-        self.connect("activate", ViewerApp.__activate_cb)
-        self.connect("open", ViewerApp.__open_cb)
-
-    def __open_cb(self, g_files, n_g_files, hint):
-        for g_file in g_files:
-            w = ViewerWindow(g_file.get_path())
-            self.add_window(w)
-
-    def __activate_cb(self):
+    def __open_clicked_cb(self, open_button):
         d = Gtk.FileChooserDialog(
             "Open",
-            None,
+            self,
             Gtk.FileChooserAction.OPEN,
             (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
              Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
@@ -104,9 +103,41 @@ class ViewerApp(Gtk.Application):
         d.add_filter(ff)
 
         if d.run() == Gtk.ResponseType.OK:
-            self.__open_cb(d.get_files(), len(d.get_files()), "")
+            g_files = d.get_files()
+            if self.filename is None and g_files:
+                self.__set_filename(g_files[0].get_path())
+                g_files = g_files[1:]
+
+            for g_file in g_files:
+                self.get_application().open(g_file)
 
         d.destroy()
+
+
+
+class ViewerApp(Gtk.Application):
+    def __init__(self):
+        Gtk.Application.__init__(self, application_id="uk.me.wjt.markgown.viewer",
+                                 flags=Gio.ApplicationFlags.HANDLES_OPEN)
+
+        self.connect("activate", ViewerApp.__activate_cb)
+        self.connect("open", ViewerApp.__open_cb)
+
+    def open(self, g_file):
+        path = g_file.get_path()
+        ws = [ w for w in self.get_windows() if w.filename == path ]
+        if ws:
+            map(lambda w: w.present(), ws)
+        else:
+            w = ViewerWindow(g_file.get_path())
+            self.add_window(w)
+
+    def __open_cb(self, g_files, n_g_files, hint):
+        for g_file in g_files:
+            self.open(g_file)
+
+    def __activate_cb(self):
+        self.add_window(ViewerWindow(None))
 
 
 if __name__ == '__main__':
