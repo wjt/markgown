@@ -172,16 +172,15 @@ class ViewerApp(Gtk.Application):
     def open(self, g_file):
         path = g_file.get_path()
         w = self.__find_window(path)
-        if w is not None:
-            w.present()
-        else:
+        if w is None:
             w = self.__find_window(None)
             if w is not None:
                 w.set_filename(path)
-                w.present()
             else:
                 w = ViewerWindow(path)
                 self.add_window(w)
+
+        w.present_with_time(Gtk.get_current_event_time())
 
     def __open_cb(self, g_files, n_g_files, hint):
         for g_file in g_files:
