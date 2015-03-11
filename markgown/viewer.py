@@ -25,6 +25,15 @@ from gi.repository import Gtk, Gio, WebKit
 from rebuilder import Rebuilder
 
 
+def ff_for_globs(kind, globs):
+    ff = Gtk.FileFilter()
+    ff.set_name("{} files ({})".format(kind, ", ".join(globs)))
+    for glob in globs:
+        ff.add_pattern(glob)
+    return ff
+
+
+
 class ViewerWindow(Gtk.ApplicationWindow):
     def __init__(self, md_filename):
         Gtk.ApplicationWindow.__init__(self)
@@ -70,7 +79,8 @@ class ViewerWindow(Gtk.ApplicationWindow):
             suffix='.html')
         self.connect('destroy', ViewerWindow.__destroy_cb)
 
-        self.rebuilder = Rebuilder(self.filename, self.html_file.name)
+        self.rebuilder = Rebuilder(self.filename, self.html_file.name,
+                                   'mediawiki' if 'mediawiki' in self.filename else 'markdown')
         self.rebuilder.connect('rebuilt', self.__rebuilt_cb)
         self.rebuilder.rebuild()
 
@@ -104,19 +114,18 @@ class ViewerWindow(Gtk.ApplicationWindow):
         d.set_local_only(True)
         d.set_select_multiple(True)
 
-        ff = Gtk.FileFilter()
-        markdown_globs = [
+        d.add_filter(ff_for_globs("Markdown", [
             "*.md",
             "*.mkd",
-            "*.mdwn"
-        ]
-        ff.set_name("Markdown files ({})".format(", ".join(markdown_globs)))
-        for glob in markdown_globs:
-            ff.add_pattern(glob)
-        d.add_filter(ff)
+            "*.mdwn",
+        ]))
+
+        d.add_filter(ff_for_globs("MediaWiki", [
+            "*.mediawiki.txt",
+        ]))
 
         ff = Gtk.FileFilter()
-        ff.set_name("Text files")
+        ff.set_name("Text files (let Pandoc guess the format)")
         ff.add_mime_type("text/plain")
         d.add_filter(ff)
 

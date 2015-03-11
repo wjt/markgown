@@ -26,11 +26,12 @@ class Rebuilder(GObject.Object):
                           ())
     }
 
-    def __init__(self, path, html_path):
+    def __init__(self, path, html_path, format='markdown'):
         GObject.Object.__init__(self)
 
         self.path = path
         self.html_path = html_path
+        self.format = format
 
         self.file = Gio.File.new_for_path(path)
         self.monitor = self.file.monitor(
@@ -48,7 +49,8 @@ class Rebuilder(GObject.Object):
         pandoc = subprocess.Popen(["pandoc", "-s", "--smart", "--toc",
                                    "--css=%s" % css_path] +
                                   (["--self-contained"] if self_contained else []) + 
-                                  [self.path, "-o", destination])
+                                  ["--from", self.format,
+                                   self.path, "-o", destination])
         pandoc.wait()
 
     def rebuild(self):
