@@ -56,13 +56,17 @@ class ViewerWindow(Gtk.ApplicationWindow):
         self.hb.set_subtitle(self.filename)
 
         self.html_file = tempfile.NamedTemporaryFile(prefix=os.path.basename(md_filename), suffix='.html')
-        # TODO: close (and hence delete) on destroy
+        self.connect('destroy', ViewerWindow.__destroy_cb)
 
         self.rebuilder = Rebuilder(self.filename, self.html_file.name)
         self.rebuilder.connect('rebuilt', self.__rebuilt_cb)
         self.rebuilder.rebuild()
 
         self.web_view.load_uri('file://' + self.html_file.name)
+
+    def __destroy_cb(self):
+        print self.html_file.name
+        self.html_file.close()
 
     def __rebuilt_cb(self, rebuilder):
         self.web_view.reload()
