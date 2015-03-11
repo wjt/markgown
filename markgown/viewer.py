@@ -188,8 +188,3 @@ class ViewerApp(Gtk.Application):
 
     def __activate_cb(self):
         self.add_window(ViewerWindow(None))
-
-
-if __name__ == '__main__':
-    app = ViewerApp()
-    app.run(sys.argv)

@@ -5,7 +5,7 @@ to HTML using [Pandoc][].
 
 # Instructions
 
-    % python -m markgown.preview
+    % PYTHONPATH=. ./bin/markgown-preview
 
 Open some Markdown file, and then try editing it in your text editor of choice.
 Later, you can export the HTML if you like, or publish your Markdown source in
