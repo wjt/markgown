@@ -41,13 +41,17 @@ class Rebuilder(GObject.Object):
         if event_type == Gio.FileMonitorEvent.CHANGES_DONE_HINT:
             self.rebuild()
 
-    def rebuild(self):
+    def build(self, destination, self_contained=False):
         css_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), 'markdown.css'))
 
         pandoc = subprocess.Popen(["pandoc", "-s", "--smart", "--toc",
-                                   "--css=file://%s" % css_path,
-                                   self.path, "-o", self.html_path])
+                                   "--css=%s" % css_path] +
+                                  (["--self-contained"] if self_contained else []) + 
+                                  [self.path, "-o", destination])
         pandoc.wait()
+
+    def rebuild(self):
+        self.build(self.html_path)
         self.emit('rebuilt')
 

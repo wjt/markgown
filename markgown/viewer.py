@@ -33,9 +33,16 @@ class ViewerWindow(Gtk.ApplicationWindow):
         self.hb.set_show_close_button(True)
         self.set_titlebar(self.hb)
 
-        open_button = Gtk.Button.new_from_icon_name("document-open-symbolic", Gtk.IconSize.BUTTON)
+        open_button = Gtk.Button.new_from_icon_name(
+            "document-open-symbolic", Gtk.IconSize.BUTTON)
         open_button.connect('clicked', self.__open_clicked_cb)
         self.hb.pack_start(open_button)
+
+        self.export_button = Gtk.Button.new_from_icon_name(
+            "document-send-symbolic", Gtk.IconSize.BUTTON)
+        self.export_button.connect('clicked', self.__export_clicked_cb)
+        self.export_button.set_sensitive(False)
+        self.hb.pack_end(self.export_button)
 
         self.web_view = WebKit.WebView()
         self.web_view.connect('notify::title', self.__title_changed_cb)
@@ -63,6 +70,8 @@ class ViewerWindow(Gtk.ApplicationWindow):
         self.rebuilder.rebuild()
 
         self.web_view.load_uri('file://' + self.html_file.name)
+
+        self.export_button.set_sensitive(True)
 
     def __destroy_cb(self):
         print self.html_file.name
@@ -110,7 +119,7 @@ class ViewerWindow(Gtk.ApplicationWindow):
         if d.run() == Gtk.ResponseType.OK:
             g_files = d.get_files()
             if self.filename is None and g_files:
-                self.__set_filename(g_files[0].get_path())
+                self.set_filename(g_files[0].get_path())
                 g_files = g_files[1:]
 
             for g_file in g_files:
@@ -118,6 +127,26 @@ class ViewerWindow(Gtk.ApplicationWindow):
 
         d.destroy()
 
+    def __export_clicked_cb(self, export_button):
+        d = Gtk.FileChooserDialog(
+            "Export as HTML",
+            self,
+            Gtk.FileChooserAction.SAVE,
+            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+             Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
+        d.set_local_only(True)
+        suggested = os.path.splitext(self.filename)[0] + '.html'
+        if os.path.exists(suggested):
+            d.set_filename(suggested)
+        else:
+            directory, filename = os.path.split(suggested)
+            d.set_current_folder(directory)
+            d.set_current_name(filename)
+
+        if d.run() == Gtk.ResponseType.OK:
+            self.rebuilder.build(d.get_filename(), self_contained=True)
+
+        d.destroy()
 
 
 class ViewerApp(Gtk.Application):
