@@ -24,6 +24,7 @@ from gi.repository import Gtk, Gio, WebKit
 
 from rebuilder import Rebuilder
 
+
 class ViewerWindow(Gtk.ApplicationWindow):
     def __init__(self, md_filename):
         Gtk.ApplicationWindow.__init__(self)
@@ -51,7 +52,7 @@ class ViewerWindow(Gtk.ApplicationWindow):
         self.add(sw)
 
         self.filename = None
-        if md_filename != None:
+        if md_filename is not None:
             self.set_filename(md_filename)
 
         self.show_all()
@@ -62,7 +63,9 @@ class ViewerWindow(Gtk.ApplicationWindow):
         self.filename = md_filename
         self.hb.set_subtitle(self.filename)
 
-        self.html_file = tempfile.NamedTemporaryFile(prefix=os.path.basename(md_filename), suffix='.html')
+        self.html_file = tempfile.NamedTemporaryFile(
+            prefix=os.path.basename(md_filename),
+            suffix='.html')
         self.connect('destroy', ViewerWindow.__destroy_cb)
 
         self.rebuilder = Rebuilder(self.filename, self.html_file.name)
@@ -74,7 +77,6 @@ class ViewerWindow(Gtk.ApplicationWindow):
         self.export_button.set_sensitive(True)
 
     def __destroy_cb(self):
-        print self.html_file.name
         self.html_file.close()
 
     def __rebuilt_cb(self, rebuilder):
@@ -151,7 +153,8 @@ class ViewerWindow(Gtk.ApplicationWindow):
 
 class ViewerApp(Gtk.Application):
     def __init__(self):
-        Gtk.Application.__init__(self, application_id="uk.me.wjt.markgown.viewer",
+        Gtk.Application.__init__(self,
+                                 application_id="uk.me.wjt.markgown.viewer",
                                  flags=Gio.ApplicationFlags.HANDLES_OPEN)
 
         self.connect("activate", ViewerApp.__activate_cb)
