@@ -1,6 +1,13 @@
 #!/usr/bin/env python
+import os
 import sys
-import markgown.viewer
+
+try:
+     import markgown.viewer
+except ImportError:
+     # Running from source tree?
+     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+     import markgown.viewer
 
 app = markgown.viewer.ViewerApp()
 app.run(sys.argv)
