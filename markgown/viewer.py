@@ -37,12 +37,14 @@ class ViewerWindow(Gtk.ApplicationWindow):
         open_button = Gtk.Button.new_from_icon_name(
             "document-open-symbolic", Gtk.IconSize.BUTTON)
         open_button.connect('clicked', self.__open_clicked_cb)
+        open_button.set_tooltip_text("Open a file")
         self.hb.pack_start(open_button)
 
         self.export_button = Gtk.Button.new_from_icon_name(
             "document-send-symbolic", Gtk.IconSize.BUTTON)
         self.export_button.connect('clicked', self.__export_clicked_cb)
         self.export_button.set_sensitive(False)
+        self.export_button.set_tooltip_text("Export HTML")
         self.hb.pack_end(self.export_button)
 
         self.web_view = WebKit.WebView()
