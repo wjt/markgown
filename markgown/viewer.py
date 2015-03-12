@@ -49,12 +49,23 @@ class ViewerWindow(Gtk.ApplicationWindow):
         open_button.set_tooltip_text("Open a file")
         self.hb.pack_start(open_button)
 
+        # TODO: neither of these next two icons are quite right
         self.export_button = Gtk.Button.new_from_icon_name(
             "document-send-symbolic", Gtk.IconSize.BUTTON)
         self.export_button.connect('clicked', self.__export_clicked_cb)
         self.export_button.set_sensitive(False)
         self.export_button.set_tooltip_text("Export HTML")
         self.hb.pack_end(self.export_button)
+
+        self.text_plain_app_infos = Gio.AppInfo.get_all_for_type('text/plain')
+
+        self.edit_button = Gtk.Button.new_from_icon_name(
+            "send-to-symbolic", Gtk.IconSize.BUTTON)
+        self.edit_button.connect('clicked', self.__edit_clicked_cb)
+        self.edit_button.set_sensitive(False)
+        self.edit_button.set_tooltip_text("Edit file in {}".format(
+            self.text_plain_app_infos[0].get_display_name()))
+        self.hb.pack_end(self.edit_button)
 
         self.web_view = WebKit.WebView()
         self.web_view.connect('notify::title', self.__title_changed_cb)
@@ -87,6 +98,7 @@ class ViewerWindow(Gtk.ApplicationWindow):
         self.web_view.load_uri('file://' + self.html_file.name)
 
         self.export_button.set_sensitive(True)
+        self.edit_button.set_sensitive(True)
 
     def __destroy_cb(self):
         self.html_file.close()
@@ -139,6 +151,9 @@ class ViewerWindow(Gtk.ApplicationWindow):
                 self.get_application().open(g_file)
 
         d.destroy()
+
+    def __edit_clicked_cb(self, edit_button):
+        self.text_plain_app_infos[0].launch_uris(['file://' + self.filename])
 
     def __export_clicked_cb(self, export_button):
         d = Gtk.FileChooserDialog(
