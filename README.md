@@ -1,5 +1,3 @@
-% Markgown: a README
-
 A little live [Markdown][] previewer with almost no features. It renders Markdown
 to HTML using [Pandoc][].
 
@@ -21,7 +19,11 @@ I do now. But I don't use `gedit`.
 
 ## What happened to the editor?
 
-The code is still lying around, but why not use a real text editor?
+The code is still lying around, but why not use a real text editor? The only real benefit of a built-in editor was that you didn't need to save the document to have it refreshed, but you can get pretty close in Vim with:
+
+```vimL
+:au FocusLost * :wa
+```
 
 ## Who wrote the beautiful CSS?
 
