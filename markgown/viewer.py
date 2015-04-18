@@ -20,7 +20,7 @@ import os.path
 import sys
 import tempfile
 
-from gi.repository import Gtk, Gio, WebKit
+from gi.repository import Gtk, Gio, WebKit2
 
 from rebuilder import Rebuilder
 
@@ -67,7 +67,7 @@ class ViewerWindow(Gtk.ApplicationWindow):
             self.text_plain_app_infos[0].get_display_name()))
         self.hb.pack_end(self.edit_button)
 
-        self.web_view = WebKit.WebView()
+        self.web_view = WebKit2.WebView()
         self.web_view.connect('notify::title', self.__title_changed_cb)
         sw = Gtk.ScrolledWindow()
         sw.add(self.web_view)
