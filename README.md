@@ -9,7 +9,8 @@ Open some Markdown file, and then try editing it in your text editor of choice.
 Later, you can export the HTML if you like, or publish your Markdown source in
 your normal way.
 
-![](http://willthompson.co.uk/misc/markgown-preview.png)
+<img src='http://willthompson.co.uk/misc/markgown-preview-hidpi.png'
+    width=744 height=576 alt='screenshot of markgown'>
 
 # Questions nobody has asked
 
