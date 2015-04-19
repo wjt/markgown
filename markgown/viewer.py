@@ -78,6 +78,7 @@ class ViewerWindow(Gtk.ApplicationWindow):
             self.set_filename(md_filename)
 
         self.show_all()
+        self.__title_changed_cb()
 
     def set_filename(self, md_filename):
         assert self.filename is None
@@ -109,7 +110,7 @@ class ViewerWindow(Gtk.ApplicationWindow):
     def __title_changed_cb(self, *args):
         title = self.web_view.get_title()
 
-        if title is None:
+        if not title:
             basename = os.path.basename(self.filename)
             root, _ = os.path.splitext(basename)
             self.hb.set_title(root)
